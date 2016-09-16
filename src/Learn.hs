@@ -60,17 +60,40 @@ learnOutput outputWeights hiddenInputs elements out = do
 
 
 learnHidden :: [[Double]] -> [Double] -> [Double] -> [Double] -> Double -> [[Double]]
-learnHidden hiddenWeightss outputWeights hiddenInputs elements out = undefined
+learnHidden hiddenWeightss outputWeights hiddenInputs elements out = do
+    [learnHidden1 out hi ow hws elements | (hi, ow, hws)
+        <- zip3 hiddenInputs outputWeights hiddenWeightss]
 
---learnHidden2 :: [[Double]] -> [[Double]] -> Double -> [Double]
---learnHidden2 hiddenWeightss elementss out = do
---    let diff = hi * (1 - hi) * ow * (ans - out) * out * (1 - out)
---    hiddenWeights1 = learnHidden1 hiddenWeights elements diff
---
---learnHidden1 :: [Double] -> [Double] -> Double -> [Double]
---learnHidden1 hiddenWeights elements diff = do
---    [i + alpha * j * diff | (i, j) <- zip hiddenWeights elements]
---  where
---    alpha = gALPHA
 
+learnHidden1 :: Double -> Double -> Double -> [Double] -> [Double] -> [Double]
+learnHidden1 out hiddenInput outputWeight hiddenWeights elements = weights ++ [threshold]
+  where
+    ans = last elements
+    diff = calHiddenDiff hiddenInput outputWeight ans out
+
+    weights = [learnHiddenWeight diff i j | (i, j) <-
+        zip (init hiddenWeights) (init elements)]
+    threshold = learnHiddenThreshold diff $ last hiddenWeights
+
+
+calHiddenDiff :: Double -> Double -> Double -> Double -> Double
+calHiddenDiff hiddenInput outputWeight ans out = do
+    hiddenInput * (1 - hiddenInput) * outputWeight * diff * fd
+  where
+    fd = out * (1 - out)
+    diff = ans - out
+
+
+learnHiddenWeight :: Double -> Double -> Double -> Double
+learnHiddenWeight diff weight element = do
+    weight + alpha * element * diff
+  where
+    alpha = gALPHA
+
+
+learnHiddenThreshold :: Double -> Double -> Double
+learnHiddenThreshold diff threshold = do
+    threshold - alpha * diff
+  where
+    alpha = gALPHA
 
