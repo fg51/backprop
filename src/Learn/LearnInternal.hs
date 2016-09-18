@@ -9,7 +9,7 @@ gALPHA = 10
 
 
 learn :: [Double] -> [[Double]] -> [[Double]] -> ([Double], [[Double]])
-learn outputWeights hiddenWeightss elementss = do
+learn outputWeights hiddenWeightss elementss =
     learnLoop bigErr outputWeights hiddenWeightss elementss
   where
     bigErr = 100
@@ -19,13 +19,8 @@ learnLoop :: Double -> [Double] -> [[Double]] -> [[Double]]
      -> ([Double], [[Double]])
 learnLoop err outputWeights hiddenWeightss elementss
     | err >= limit = do
-        let (err1, outputWeights1, hiddenWeightss1) = do
-                aLearnLoopElements 0 outputWeights hiddenWeightss elementss
-        -- let (err2, outputWeights2, hiddenWeightss2) = do
-        --          aLearnLoopElements 0 outputWeights1 hiddenWeightss1 elementss
-        -- let (err3, outputWeights3, hiddenWeightss3) = do
-        --          aLearnLoopElements 0 outputWeights2 hiddenWeightss2 elementss
-        -- (outputWeights3, hiddenWeightss3)
+        let (err1, outputWeights1, hiddenWeightss1) = aLearnLoopElements 0
+                outputWeights hiddenWeightss elementss
         learnLoop err1 outputWeights1 hiddenWeightss1 elementss
     | otherwise = (outputWeights, hiddenWeightss)
   where
@@ -34,13 +29,7 @@ learnLoop err outputWeights hiddenWeightss elementss
 
 aLearnLoopElements :: Double -> [Double] -> [[Double]] -> [[Double]]
     -> (Double, [Double], [[Double]])
-aLearnLoopElements err outputWeights hiddenWeightss [] = do
-    -- let msg0 = "in aLearnLoopElements \n"
-    -- let msg1 = "err: " ++ (show err) ++ "\n"
-    -- let msg2 = "output weight: \n" ++ (show outputWeights) ++ "\n"
-    -- let msg3 = "hidden weight: \n" ++ (show hiddenWeightss) ++ "\n"
-    -- trace (msg0 ++ msg1 ++ msg2 ++ msg3) (err, outputWeights, hiddenWeightss)
-    -- trace (msg1) (err, outputWeights, hiddenWeightss)
+aLearnLoopElements err outputWeights hiddenWeightss [] =
     (err, outputWeights, hiddenWeightss)
 aLearnLoopElements err outputWeights hiddenWeightss (es:ess) = do
     let (err1, outputWeights1, hiddenWeightss1) = aLearn err outputWeights hiddenWeightss es
@@ -50,22 +39,20 @@ aLearnLoopElements err outputWeights hiddenWeightss (es:ess) = do
 aLearn :: Double -> [Double] -> [[Double]] -> [Double]
     -> (Double, [Double], [[Double]])
 aLearn err outputWeights hiddenWeightss elements = do
-    let (out, hiddenInputs) = forward outputWeights hiddenWeightss $ init elements
     let outputWeights1  = learnOutput outputWeights hiddenInputs elements out
     let hiddenWeightss1 = learnHidden hiddenWeightss outputWeights1 hiddenInputs elements out
     let err1 = err + (out - ans) * (out - ans)
     (err1, outputWeights1, hiddenWeightss1)
       where
+        (out, hiddenInputs) = forward outputWeights hiddenWeightss $ init elements
         ans = last elements
 
 
 learnOutput :: [Double] -> [Double] -> [Double] -> Double -> [Double]
 learnOutput outputWeights hiddenInputs elements out = do
-    let ows = [i + alpha * j * d | (i, j) <- zip outputWeights hiddenInputs]
+    let ows = [i + alpha * j * d | (i, j) <- zip (init outputWeights) hiddenInputs]
     let threshold = (last outputWeights) - alpha * d
-    let ret = ows ++ [threshold]
-    ret
-    -- trace ("learnOutput: " ++ (show ret)) ret
+    ows ++ [threshold]
       where
         alpha = gALPHA
         ans   = last elements
@@ -76,11 +63,9 @@ learnOutput outputWeights hiddenInputs elements out = do
 
 learnHidden :: [[Double]] -> [Double] -> [Double] -> [Double] -> Double
     -> [[Double]]
-learnHidden hiddenWeightss outputWeights hiddenInputs elements out = do
-    let ret = [learnHidden1 out hi ow hws elements | (hi, ow, hws)
-            <- zip3 hiddenInputs outputWeights hiddenWeightss]
-    -- trace ("learnHidden: " ++ (show ret)) ret
-    ret
+learnHidden hiddenWeightss outputWeights hiddenInputs elements out =
+    [learnHidden1 out hi ow hws elements | (hi, ow, hws)
+        <- zip3 hiddenInputs outputWeights hiddenWeightss]
 
 
 learnHidden1 :: Double -> Double -> Double -> [Double] -> [Double] -> [Double]
@@ -95,7 +80,7 @@ learnHidden1 out hiddenInput outputWeight hiddenWeights elements = weights ++ [t
 
 
 calHiddenDiff :: Double -> Double -> Double -> Double -> Double
-calHiddenDiff hiddenInput outputWeight ans out = do
+calHiddenDiff hiddenInput outputWeight ans out =
     hiddenInput * (1 - hiddenInput) * outputWeight * diff * fd
   where
     fd = out * (1 - out)
@@ -103,15 +88,13 @@ calHiddenDiff hiddenInput outputWeight ans out = do
 
 
 learnHiddenWeight :: Double -> Double -> Double -> Double
-learnHiddenWeight diff weight element = do
-    weight + alpha * element * diff
+learnHiddenWeight diff weight element = weight + alpha * element * diff
   where
     alpha = gALPHA
 
 
 learnHiddenThreshold :: Double -> Double -> Double
-learnHiddenThreshold diff threshold = do
-    threshold - alpha * diff
+learnHiddenThreshold diff threshold = threshold - alpha * diff
   where
     alpha = gALPHA
 
