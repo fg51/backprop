@@ -21,30 +21,30 @@ learnLoop err outputWeights hiddenWeightss elementss
     | err >= limit = do
         let (err1, outputWeights1, hiddenWeightss1) = do
                 aLearnLoopElements 0 outputWeights hiddenWeightss elementss
-        let (err2, outputWeights2, hiddenWeightss2) = do
-                 aLearnLoopElements 0 outputWeights1 hiddenWeightss1 elementss
-        let (err3, outputWeights3, hiddenWeightss3) = do
-                 aLearnLoopElements 0 outputWeights2 hiddenWeightss2 elementss
-        (outputWeights3, hiddenWeightss3)
-        -- learnLoop err1 outputWeights1 hiddenWeightss1 elementss
+        -- let (err2, outputWeights2, hiddenWeightss2) = do
+        --          aLearnLoopElements 0 outputWeights1 hiddenWeightss1 elementss
+        -- let (err3, outputWeights3, hiddenWeightss3) = do
+        --          aLearnLoopElements 0 outputWeights2 hiddenWeightss2 elementss
+        -- (outputWeights3, hiddenWeightss3)
+        learnLoop err1 outputWeights1 hiddenWeightss1 elementss
     | otherwise = (outputWeights, hiddenWeightss)
   where
-    limit = 0.01
+    limit = 0.001
 
 
 aLearnLoopElements :: Double -> [Double] -> [[Double]] -> [[Double]]
     -> (Double, [Double], [[Double]])
 aLearnLoopElements err outputWeights hiddenWeightss [] = do
-    let msg0 = "in aLearnLoopElements \n"
-    let msg1 = "err: " ++ (show err) ++ "\n"
-    let msg2 = "output weight: \n" ++ (show outputWeights) ++ "\n"
-    let msg3 = "hidden weight: \n" ++ (show hiddenWeightss) ++ "\n"
-    trace (msg0 ++ msg1 ++ msg2 ++ msg3) (err, outputWeights, hiddenWeightss)
+    -- let msg0 = "in aLearnLoopElements \n"
+    -- let msg1 = "err: " ++ (show err) ++ "\n"
+    -- let msg2 = "output weight: \n" ++ (show outputWeights) ++ "\n"
+    -- let msg3 = "hidden weight: \n" ++ (show hiddenWeightss) ++ "\n"
+    -- trace (msg0 ++ msg1 ++ msg2 ++ msg3) (err, outputWeights, hiddenWeightss)
     -- trace (msg1) (err, outputWeights, hiddenWeightss)
-    -- (err, outputWeights, hiddenWeightss)
+    (err, outputWeights, hiddenWeightss)
 aLearnLoopElements err outputWeights hiddenWeightss (es:ess) = do
     let (err1, outputWeights1, hiddenWeightss1) = aLearn err outputWeights hiddenWeightss es
-    aLearnLoopElements err1 outputWeights hiddenWeightss ess
+    aLearnLoopElements err1 outputWeights1 hiddenWeightss1 ess
 
 
 aLearn :: Double -> [Double] -> [[Double]] -> [Double]
@@ -55,11 +55,6 @@ aLearn err outputWeights hiddenWeightss elements = do
     let hiddenWeightss1 = learnHidden hiddenWeightss outputWeights1 hiddenInputs elements out
     let err1 = err + (out - ans) * (out - ans)
     (err1, outputWeights1, hiddenWeightss1)
-    -- let msg0 = "in aLearn \n"
-    -- let msg1 = "err: " ++ (show err1) ++ "\n"
-    -- let msg2 = "output weight: \n" ++ (show outputWeights1) ++ "\n"
-    -- let msg3 = "hidden weight: \n" ++ (show hiddenWeightss1) ++ "\n"
-    -- trace (msg1 ++ msg2 ++ msg3) (err1, outputWeights1, hiddenWeightss1)
       where
         ans = last elements
 
